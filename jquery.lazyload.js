@@ -29,6 +29,7 @@
             skip_invisible  : false,
             appear          : null,
             load            : null,
+            error            : $.noop,
             placeholder     : "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAAAXNSR0IArs4c6QAAAARnQU1BAACxjwv8YQUAAAAJcEhZcwAADsQAAA7EAZUrDhsAAAANSURBVBhXYzh8+PB/AAffA0nNPuCLAAAAAElFTkSuQmCC"
         };
 
@@ -42,12 +43,12 @@
                 }
                 if ($.abovethetop(this, settings) ||
                     $.leftofbegin(this, settings)) {
-                        /* Nothing. */
+                    /* Nothing. */
                 } else if (!$.belowthefold(this, settings) &&
                     !$.rightoffold(this, settings)) {
-                        $this.trigger("appear");
-                        /* if we found an image we'll load, reset the counter */
-                        counter = 0;
+                    $this.trigger("appear");
+                    /* if we found an image we'll load, reset the counter */
+                    counter = 0;
                 } else {
                     if (++counter > settings.failure_limit) {
                         return false;
@@ -73,7 +74,7 @@
 
         /* Cache container as jQuery as object. */
         $container = (settings.container === undefined ||
-                      settings.container === window) ? $window : $(settings.container);
+        settings.container === window) ? $window : $(settings.container);
 
         /* Fire one scroll event per scroll. Not one scroll event per image. */
         if (0 === settings.event.indexOf("scroll")) {
@@ -125,7 +126,12 @@
                                 var elements_left = elements.length;
                                 settings.load.call(self, elements_left, settings);
                             }
-                        })
+                        }).one('error',function(){
+                            var original = $self.attr("data-" + settings.data_attribute);
+                            if (settings.error) {
+                                settings.error($self, original)
+                            };
+                    })
                         .attr("src", $self.attr("data-" + settings.data_attribute));
                 }
             });
@@ -218,9 +224,9 @@
     };
 
     $.inviewport = function(element, settings) {
-         return !$.rightoffold(element, settings) && !$.leftofbegin(element, settings) &&
-                !$.belowthefold(element, settings) && !$.abovethetop(element, settings);
-     };
+        return !$.rightoffold(element, settings) && !$.leftofbegin(element, settings) &&
+            !$.belowthefold(element, settings) && !$.abovethetop(element, settings);
+    };
 
     /* Custom selectors for your convenience.   */
     /* Use as $("img:below-the-fold").something() or */
